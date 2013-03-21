@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <string name="hello">Hello World, WebContainerActivity!</string>
+    <string name="app_name">STS Web Container</string>
+    <string name="write_to_tag">Write to Tag</string>
+    <string name="default_note_text">Edit me!</string>
+    <string name="uri_prefix">http://496.thinks.org/496/</string>
+    <string name="default_url">http://496.thinks.org/496/</string>
+    <string name="upload_url">http://kimberly.magic.ubc.ca:8080/thingbroker/things/1231/events</string>
+    <string name="api_url">http://container.icd.magic.ubc.ca/api/apps</string>
+    <string name="thing_broker_server">kimberly.magic.ubc.ca</string>
+    <string name="thing_broker_port">8080</string>
+    <string name="thing_broker_thing_name">123</string>
+
+</resources>

@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<lint>
+    <issue id="SetJavaScriptEnabled" severity="ignore" />
+    <issue id="ValidFragment">
+        <ignore path="src\com\sensetecnic\container\MenuFragment.java" />
+    </issue>
+</lint>
