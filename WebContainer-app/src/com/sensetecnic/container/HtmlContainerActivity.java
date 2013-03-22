@@ -100,12 +100,12 @@ public class HtmlContainerActivity extends SlidingFragmentActivity {
 		super.onCreate(savedInstanceState);
 		
 		final String OVERRIDE_PREFIX = getString(R.string.uri_prefix);
-		initAppList();
 		
 		// Initialise Sensor management information 
         accelerometerUploader = new AccelerometerUploader(getString(R.string.upload_url), this);
 		
 		setContentView(R.layout.html_challenge);
+		setBehindContentView(R.layout.menu_frame);
 		
 		initAppList();
 		
@@ -423,11 +423,12 @@ public class HtmlContainerActivity extends SlidingFragmentActivity {
 				// Last item is for scanning the QR code of the display
 				items[items.length - 1] = "** Scan Display QR **";
 				
-				setBehindContentView(R.layout.menu_frame);
 				getSupportFragmentManager()
 					.beginTransaction()
 					.replace(R.id.menu_frame, new MenuFragment(items))
 					.commit();
+			} else {
+				Log.e("ERROR", "Unable to fetch the list of apps");
 			}
 		} catch (Exception e) {
 			e.printStackTrace(System.err);
