@@ -13,6 +13,7 @@ import org.apache.http.entity.mime.MultipartEntity;
 import org.apache.http.entity.mime.content.FileBody;
 import org.apache.http.impl.client.BasicResponseHandler;
 import org.apache.http.impl.client.DefaultHttpClient;
+import org.json.JSONArray;
 import org.json.JSONObject;
 import org.json.JSONTokener;
 
@@ -38,6 +39,9 @@ public class PhotoUploader extends Activity {
 	long captureTime;
 	File photo;
 	ProgressDialog progressDialog;
+	String uploadURL;
+	String eventKey;
+	String sensorKey;
 	
 	private static final int MEDIA_TYPE_IMAGE = 1;
 	private static final int CAPTURE_IMAGE = 1;
@@ -51,6 +55,9 @@ public class PhotoUploader extends Activity {
 		
 		Intent intent = getIntent();
 		String source = intent.getStringExtra("source");
+		uploadURL = intent.getStringExtra("uploadURL") + "?keep-stored=true";
+		eventKey = intent.getStringExtra("eventKey");
+		sensorKey = intent.getStringExtra("sensorKey"); 
 		if (source.equals("camera")) {
 			captureTime = System.currentTimeMillis();
 			Intent newIntent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
@@ -194,22 +201,15 @@ public class PhotoUploader extends Activity {
 	class PostPhotoTask extends AsyncTask<String, Void, String> {
 		protected String doInBackground(String... params) {
 			try {
-				String url = getString(R.string.upload_url) + "?keep-stored=true";
-				
-				MultipartEntity reqEntity = new MultipartEntity();  
-				FileBody bin = new FileBody(photo);
-				reqEntity.addPart("file", bin);
-			
-				System.out.println("File Entity: " + reqEntity.toString());
+				String id = ThingBrokerHelper.uploadFile(photo, uploadURL, eventKey, sensorKey);
+				JSONArray array = new JSONArray();
 
-				DefaultHttpClient httpclient = new DefaultHttpClient();  		
-				HttpPost httppost = new HttpPost(url);
-				System.out.println("Attempting to upload the Multipart Entity to: " + url);
-				httppost.setEntity(reqEntity);
-				// Execute HTTP Post Request  
-				HttpResponse response = httpclient.execute(httppost);
+				String src = 
+					"http://" + getString(R.string.thing_broker_server) + ":" 
+					+ getString(R.string.thing_broker_port) + "/thingbroker/content/" + id;
+				array.put(src);
 
-				return new BasicResponseHandler().handleResponse(response);
+				return ThingBrokerHelper.postJSONArray(array, uploadURL, eventKey, sensorKey);
 			} catch (Exception e) {
 				e.printStackTrace(System.err);
 				return null;

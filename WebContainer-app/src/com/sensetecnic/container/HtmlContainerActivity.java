@@ -81,7 +81,7 @@ public class HtmlContainerActivity extends SlidingFragmentActivity {
 	private int accelerometerPeriod = 1000;
 	private boolean accelerometer_enabled = false;
 	private JSONArray appList;
-	private String displayID = "1";
+	private String displayID = "";
 	
 	private ProgressBar pbLoading;
 
@@ -100,9 +100,6 @@ public class HtmlContainerActivity extends SlidingFragmentActivity {
 		super.onCreate(savedInstanceState);
 		
 		final String OVERRIDE_PREFIX = getString(R.string.uri_prefix);
-		
-		// Initialise Sensor management information 
-        accelerometerUploader = new AccelerometerUploader(getString(R.string.upload_url), this);
 		
 		setContentView(R.layout.html_challenge);
 		setBehindContentView(R.layout.menu_frame);
@@ -135,8 +132,9 @@ public class HtmlContainerActivity extends SlidingFragmentActivity {
 						if (accelerometerUploader != null) {
 							accelerometerUploader.stop();
 						}
-						accelerometerUploader = new AccelerometerUploader(uploadURL, activity);
+						accelerometerUploader = new AccelerometerUploader(uploadURL, activity, parser);
 					}
+					Intent intent;
 					switch(parser.getMethod()) {
 						case URLParser.METHOD_START_ACCELEROMETER:
 							accelerometerUploader.start();
@@ -147,22 +145,31 @@ public class HtmlContainerActivity extends SlidingFragmentActivity {
 							accelerometer_enabled = false;
 							return true;
 						case URLParser.METHOD_INCREASE_ACCELEROMETER_INTERVAL:
-							accelerometerPeriod *= 2;
-							accelerometerUploader.setPeriod(accelerometerPeriod);
-							System.out.println("accelPeriod = " + accelerometerPeriod);
-							return true;
 						case URLParser.METHOD_DECREASE_ACCELEROMETER_INTERVAL:
-							accelerometerPeriod /= 2;
+							accelerometerPeriod *=
+								(parser.getMethod() == URLParser.METHOD_DECREASE_ACCELEROMETER_INTERVAL) ? 0.5 : 2;
 							accelerometerUploader.setPeriod(accelerometerPeriod);
+							if (accelerometer_enabled) {
+								accelerometerUploader.start();
+							}
 							System.out.println("accelPeriod = " + accelerometerPeriod);
 							return true;
 						case URLParser.METHOD_START_CAMERA:
 						case URLParser.METHOD_GALLERY_OPEN:
-							Intent intent = new Intent(HtmlContainerActivity.this, PhotoUploader.class);
+							intent = new Intent(HtmlContainerActivity.this, PhotoUploader.class);
 							String source = (parser.getMethod() == URLParser.METHOD_GALLERY_OPEN) ?
 											"gallery" : "camera";
 							intent.putExtra("source", source);
 							intent.putExtra("uploadURL", uploadURL);
+							intent.putExtra("eventKey", parser.getEventKey());
+							intent.putExtra("sensorKey", parser.getSensorKey());
+							startActivityForResult(intent, 1);
+							return true;
+						case URLParser.METHOD_START_MEDIA:
+							intent = new Intent(HtmlContainerActivity.this, MediaUploaderActivity.class);
+							intent.putExtra("uploadURL", uploadURL);
+							intent.putExtra("eventKey", parser.getEventKey());
+							intent.putExtra("sensorKey", parser.getSensorKey());
 							startActivityForResult(intent, 1);
 							return true;
 					}
@@ -223,10 +230,14 @@ public class HtmlContainerActivity extends SlidingFragmentActivity {
 			typeUrl();
 			return true;
 		case R.id.camera:
+			Intent intent = new Intent("com.nexes.manager.LAUNCH");
+			startActivityForResult(intent, 5);
+			/*
 			Intent intent = new Intent(HtmlContainerActivity.this, PhotoUploader.class);
 			intent.putExtra("source", "gallery");
 			intent.putExtra("uploadURL", getUploadURL("123", displayID));
 			startActivity(intent);
+			*/
 			return true;
 		default:
 			return super.onOptionsItemSelected(item);
@@ -328,46 +339,29 @@ public class HtmlContainerActivity extends SlidingFragmentActivity {
 
     @Override
     protected void onStop() {
-    	accelerometerUploader.stop();
+    	if (accelerometerUploader != null)
+    		accelerometerUploader.stop();
         super.onStop();
     }
 
 	@Override
 	protected void onActivityResult(int requestCode, int resultCode, Intent data) {
-		EventService service = new EventServiceImpl(getString(R.string.thing_broker_server),getString(R.string.thing_broker_port) , null, false);
-		Event event = new Event();
-		event.setThingId(getString(R.string.thing_broker_thing_name));
-		Map<String,String> gameInfo = new HashMap<String, String>();
-
 		if (resultCode == RESULT_OK) {
 			IntentResult scanResult = IntentIntegrator.parseActivityResult(requestCode, resultCode, data);
 			if (scanResult != null) {
 				String content = scanResult.getContents();
 				displayID = content.substring(content.lastIndexOf('/') + 1, content.length());
 				System.out.println("DisplayID = " + displayID);
+			} else if (data.getStringExtra("method") == null) {
+				if (requestCode == 5) {
+					System.out.println("PATH: " + data.getStringExtra("filepath"));
+				}
 			} else if (data.getStringExtra("method").equals("nfc")) {
 				nfc_upload = data.getStringExtra("uploadResult");
 				System.out.println("NFC upload result: " + nfc_upload);
 				if (nfc_upload != null && !nfc_upload.equals("")) {
 					//webView.loadUrl("javascript:gotNFC('"+nfc_upload+"');");
 				}
-			} else if (data.getStringExtra("method").equals("upload")) {
-				String result = data.getStringExtra("uploadResult");
-				System.out.println("Upload restul: " + result);
-				try {
-					JSONObject json = (JSONObject) new JSONTokener(result).nextValue();
-					Object jsonData = json.get("data");
-					String id = (String)((JSONArray)jsonData).get(0);
-					gameInfo.put("type", "uploadResult");
-					gameInfo.put("value", id);
-					String src = 
-						"http://" + getString(R.string.thing_broker_server) + ":" 
-						+ getString(R.string.thing_broker_port) + "/thingbroker/events/event/content/" + id
-						+ "?mustAttach=false";
-					gameInfo.put("append", "<img src='" + src + "'>");
-					event.setInfo(gameInfo);
-					//service.postEvent(STANDARD_MESSAGE, this, event, true);
-				} catch (JSONException e) {}
 			}
 		}
 	}

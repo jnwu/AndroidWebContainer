@@ -122,21 +122,6 @@ public class HtmlCallbackActivity extends Activity {
 			System.out.println("Ready to scan qr code");
 			startActivityForResult(intent, SCAN_RQ_CODE);
 			System.out.println("Scanning this");
-		} else if (mode.equals("uploadfile")) {
-			System.out.println("Starting the file browser");
-			
-			for (NameValuePair pair : parameters) {
-				if (pair.getName().equals("name")) 
-					name = pair.getValue();
-				else if (pair.getName().equals("tag"))
-					tag = pair.getValue();
-				else if (pair.getName().equals("type"))
-					type = pair.getValue();
-				// ignore other parameters as irrelevant for this mode
-			}
-			// ready to upload
-			Intent intent = new Intent("com.nexes.manager.LAUNCH");
-			startActivityForResult(intent, FILE_UPLOAD_CODE);
 		} else if (mode.equals("nfc")) {
 			for (NameValuePair pair : parameters) {
 				if (pair.getName().equals("message"))
@@ -235,14 +220,6 @@ public class HtmlCallbackActivity extends Activity {
 				// Commit the edits!
 				editor.commit();
 				finish();
-			}
-		} else if (requestCode == FILE_UPLOAD_CODE)	{
-			if(resultCode == RESULT_OK) {
-				String resultstring = intent.getStringExtra("filepath");
-				System.out.println("Result string: " + resultstring);
-				//photo = new File (resultstring);
-				//pd = ProgressDialog.show(this, "", 	"Uploading File ...", true);
-				//new PostPhotoTask().execute();
 			}
 		} else if (requestCode == NFC_TRANSFER_CODE) {
 			if(resultCode == RESULT_OK) {

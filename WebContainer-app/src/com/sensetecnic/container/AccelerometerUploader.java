@@ -23,13 +23,17 @@ public class AccelerometerUploader implements SensorEventListener {
 	Timer timer = null;
 	Sensor sensor;
 	String uploadURL;
+	String eventKey;
+	String sensorKey;
 	SensorManager sensorManager;
 	
 
-	public AccelerometerUploader(String uploadURL, Activity parent) {
+	public AccelerometerUploader(String uploadURL, Activity parent, URLParser parser) {
 		sensorManager = (SensorManager)parent.getSystemService(Context.SENSOR_SERVICE);
 		sensor = sensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER);
 		this.uploadURL = uploadURL;
+		eventKey = parser.getEventKey();
+		sensorKey = parser.getSensorKey();
 	}
 	
 	public void start() {
@@ -77,31 +81,13 @@ public class AccelerometerUploader implements SensorEventListener {
 		@Override
 		public void run() {
 			try {
-				DefaultHttpClient httpclient = new DefaultHttpClient();  		
-				HttpPost httppost = new HttpPost(uploadURL);
-				JSONObject info = new JSONObject();
-				info.put("x", linearAccel[0]);
-				info.put("y", linearAccel[1]);
-				info.put("z", linearAccel[2]);
-		
-				Log.d("DEBUG", "Accelerometer values are: " + info);
+				JSONObject data = new JSONObject();
+				data.put("x", linearAccel[0]);
+				data.put("y", linearAccel[1]);
+				data.put("z", linearAccel[2]);
+				Log.d("DEBUG", "Accelerometer values are: " + data);
 				
-				ByteArrayEntity e = new ByteArrayEntity(info.toString().getBytes());
-				e.setContentType("application/JSON");
-				e.setContentEncoding("application/JSON");
-				httppost.setEntity(e);
-				httpclient.execute(httppost);
-				/*
-				System.out.println("\n***** RESPONSE: "+response.getStatusLine().toString() + " Length=" + response.getEntity().getContentLength());
-				if (response.getEntity().getContentLength() > 0) {
-					byte[] arr = new byte[(int)response.getEntity().getContentLength()];
-					response.getEntity().getContent().read(arr);
-					System.out.println("***** RESPONSE ARRAY: ");
-					for (byte b : arr) System.out.print((char)b);
-				} else {
-					System.out.println("***** RESPONSE ENTITY: " + response.getEntity());
-				}
-				*/
+				ThingBrokerHelper.postJSONObject(data, uploadURL, eventKey, sensorKey);
 			} catch (Exception e1) {
 				e1.printStackTrace(System.err);
 			}
