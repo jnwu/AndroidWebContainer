@@ -6,6 +6,7 @@ import java.util.TimerTask;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.entity.ByteArrayEntity;
 import org.apache.http.impl.client.DefaultHttpClient;
+import org.json.JSONArray;
 import org.json.JSONObject;
 
 import android.app.Activity;
@@ -87,7 +88,12 @@ public class AccelerometerUploader implements SensorEventListener {
 				data.put("z", linearAccel[2]);
 				Log.d("DEBUG", "Accelerometer values are: " + data);
 				
-				ThingBrokerHelper.postJSONObject(data, uploadURL, eventKey, sensorKey);
+				JSONArray arr = new JSONArray();
+				arr.put(linearAccel[0]);
+				arr.put(linearAccel[1]);
+				arr.put(linearAccel[2]);
+				
+				ThingBrokerHelper.postJSONObject(arr, uploadURL, eventKey, sensorKey);
 			} catch (Exception e1) {
 				e1.printStackTrace(System.err);
 			}

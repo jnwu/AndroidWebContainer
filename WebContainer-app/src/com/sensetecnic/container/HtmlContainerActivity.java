@@ -93,6 +93,7 @@ public class HtmlContainerActivity extends SlidingFragmentActivity {
 	
 	// For uploading accelerometer data periodically
 	AccelerometerUploader accelerometerUploader;
+	GPSUploader gpsUploader;
 	
 	/** Called when the activity is first created. */
 	@Override
@@ -137,6 +138,7 @@ public class HtmlContainerActivity extends SlidingFragmentActivity {
 					Intent intent;
 					switch(parser.getMethod()) {
 						case URLParser.METHOD_START_ACCELEROMETER:
+							new GPSUploader(activity, uploadURL, parser);
 							accelerometerUploader.start();
 							accelerometer_enabled = true;
 							return true;
@@ -171,6 +173,24 @@ public class HtmlContainerActivity extends SlidingFragmentActivity {
 							intent.putExtra("eventKey", parser.getEventKey());
 							intent.putExtra("sensorKey", parser.getSensorKey());
 							startActivityForResult(intent, 1);
+							return true;
+						case URLParser.METHOD_START_GPS:
+							if (gpsUploader == null) {
+								gpsUploader = new GPSUploader(activity, uploadURL, parser);
+							}
+							gpsUploader.start();
+							return true;
+						case URLParser.METHOD_STOP_GPS:
+							if (gpsUploader != null) {
+								gpsUploader.stop();
+							}
+							return true;
+						case URLParser.METHOD_START_TOUCH:
+							ThingBrokerHelper.postJSONObject(
+									parser.getExtra(),
+									uploadURL,
+									parser.getEventKey(),
+									parser.getSensorKey());
 							return true;
 					}
 				}

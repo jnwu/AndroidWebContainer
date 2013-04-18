@@ -22,7 +22,8 @@ public class ThingBrokerHelper {
 		// This class is a bunch of static helpers. Instantiating shouldn't be allowed
 	}
 	
-	public static String postJSONObject(JSONObject json, String uploadURL, String eventKey, String sensorKey) {
+	//public static String postJSONObject(JSONObject json, String uploadURL, String eventKey, String sensorKey) {
+	public static String postJSONObject(Object json, String uploadURL, String eventKey, String sensorKey) {
 		try {
 			DefaultHttpClient httpclient = new DefaultHttpClient();  		
 			HttpPost httppost = new HttpPost(uploadURL);

@@ -10,12 +10,15 @@ public class URLParser {
 	String thingID = null;
 	String eventKey = null;
 	String sensorKey = null;
+	String extra = null;
 	boolean isSpecialURL = false;
 	
 	public static final int DEVICE_CAMERA = 1;
 	public static final int DEVICE_ACCELEROMTER = 2;
 	public static final int DEVICE_GALLERY = 3;
 	public static final int DEVICE_MEDIA = 4;
+	public static final int DEVICE_GPS = 5;
+	private static final int DEVICE_TOUCH = 6;
 	
 	public static final int METHOD_START_ACCELEROMETER = 1;
 	public static final int METHOD_STOP_ACCELEROMETER = 2;
@@ -24,6 +27,9 @@ public class URLParser {
 	public static final int METHOD_START_CAMERA = 5;
 	public static final int METHOD_GALLERY_OPEN = 6;
 	public static final int METHOD_START_MEDIA = 7;
+	public static final int METHOD_STOP_GPS = 8;
+	public static final int METHOD_START_GPS = 9;
+	public static final int METHOD_START_TOUCH = 0;
 	
 
 	public URLParser(String url) {
@@ -55,6 +61,10 @@ public class URLParser {
 		return sensorKey;
 	}
 	
+	public String getExtra() {
+		return extra;
+	}
+	
 	private void parse() {
 		url = url.substring(url.indexOf('/', 7) + 1);
 		String[] split = url.split("/");
@@ -67,14 +77,18 @@ public class URLParser {
 		String device = split[1];
 		String method = split[2];
 		eventKey = split[3];
-		if (split.length > 4) 
-			sensorKey = split[4];
-		else if (eventKey == "native") {
+
+		switch (split.length) {
+			case 6:
+				extra = split[5];
+			case 5:
+				sensorKey = split[4];
+		}
+		
+		if (eventKey == "native" && sensorKey == null) {
 			Log.e("URLPARSER", "sensorKey must be specified for 'eventKey' = 'native'");
 		}
-		System.out.printf(
-			"device=%s method=%s eventKey=%s sensorKey=%s\n", device, method, eventKey, sensorKey);
-		
+				
 		if (device.equals("camera")) {
 			this.device = DEVICE_CAMERA;
 			if (method.equals("start")) {
@@ -100,6 +114,18 @@ public class URLParser {
 			this.device = DEVICE_MEDIA;
 			if (method.equals("start")) {
 				this.method = METHOD_START_MEDIA;
+			}
+		} else if (device.equals("gps")) {
+			this.device = DEVICE_GPS;
+			if (method.equals("start")) {
+				this.method = METHOD_START_GPS;
+			} else if (method.equals("cancel")) {
+				this.method = METHOD_STOP_GPS;
+			}
+		} else if (device.equals("touch")) {
+			this.device = DEVICE_TOUCH;
+			if (method.equals("start")) {
+				this.method = METHOD_START_TOUCH;
 			}
 		}
 	}
