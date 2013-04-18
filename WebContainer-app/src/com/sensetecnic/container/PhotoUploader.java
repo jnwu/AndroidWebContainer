@@ -125,7 +125,6 @@ public class PhotoUploader extends Activity {
 				options.inSampleSize = 4;
 				Bitmap image = BitmapFactory.decodeStream(imageStream, null, options);
 				if (photo == null) {
-					//photo = getOutputMediaFile(MEDIA_TYPE_IMAGE);
 					photo = new File(params[0].getPath());
 				}
 

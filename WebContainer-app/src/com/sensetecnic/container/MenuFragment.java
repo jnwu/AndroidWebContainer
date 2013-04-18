@@ -31,7 +31,7 @@ public class MenuFragment extends ListFragment {
 	
 	@Override
 	public void onListItemClick(ListView lv, View v, int position, long id) {
-		HtmlContainerActivity activity = (HtmlContainerActivity)getActivity();
+		MainActivity activity = (MainActivity)getActivity();
 		activity.onMenuItemSelected(position);
 	}
 
