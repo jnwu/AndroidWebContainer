@@ -10,11 +10,8 @@ import org.apache.http.entity.mime.content.FileBody;
 import org.apache.http.impl.client.BasicResponseHandler;
 import org.apache.http.impl.client.DefaultHttpClient;
 import org.json.JSONArray;
-import org.json.JSONException;
 import org.json.JSONObject;
 import org.json.JSONTokener;
-
-import android.util.Log;
 
 public class ThingBrokerHelper {
 
@@ -23,19 +20,19 @@ public class ThingBrokerHelper {
 	}
 	
 	//public static String postJSONObject(JSONObject json, String uploadURL, String eventKey, String sensorKey) {
-	public static String postJSONObject(Object json, String uploadURL, String eventKey, String sensorKey) {
+	public static String postObject(Object obj, String uploadURL, String eventKey, String sensorKey) {
 		try {
 			DefaultHttpClient httpclient = new DefaultHttpClient();  		
 			HttpPost httppost = new HttpPost(uploadURL);
 			
-			if (sensorKey != null && sensorKey.length() > 0) {	
-				JSONObject temp = new JSONObject();
-				temp.put(sensorKey, json);
-				json = temp;
+			if (sensorKey != null && sensorKey.length() > 0) {
+				JSONObject json = new JSONObject();
+				json.put(sensorKey, obj);
+				obj = json;				
 			}
 			
 			JSONObject info = new JSONObject();
-			info.put(eventKey, json);
+			info.put(eventKey, obj);
 			
 			ByteArrayEntity e = new ByteArrayEntity(info.toString().getBytes());
 			e.setContentType("application/JSON");
@@ -48,33 +45,7 @@ public class ThingBrokerHelper {
 			return null;
 		}
 	}
-	
-	public static String postJSONArray(JSONArray array, String uploadURL, String eventKey, String sensorKey) {
-		try {
-			DefaultHttpClient httpclient = new DefaultHttpClient();  		
-			HttpPost httppost = new HttpPost(uploadURL);
-			JSONObject info = new JSONObject();
-			
-			if (sensorKey != null && sensorKey.length() > 0) {	
-				JSONObject temp = new JSONObject();
-				temp.put(sensorKey, array);
-				info.put(eventKey, temp);
-			} else {
-				info.put(eventKey, array);
-			}
-						
-			ByteArrayEntity e = new ByteArrayEntity(info.toString().getBytes());
-			e.setContentType("application/JSON");
-			e.setContentEncoding("application/JSON");
-			httppost.setEntity(e);
-			HttpResponse response = httpclient.execute(httppost);
-			return new BasicResponseHandler().handleResponse(response);
-		} catch (Exception e) {
-			e.printStackTrace(System.err);
-			return null;
-		}
-	}
-	
+
 	// Uploads a file to the thing broker and returns the content id 
 	public static String uploadFile(File file, String uploadURL, String eventKey, String sensorKey) {
 		try {			

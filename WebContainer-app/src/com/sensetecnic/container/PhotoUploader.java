@@ -6,21 +6,11 @@ import java.io.InputStream;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 
-import org.apache.http.Header;
-import org.apache.http.HttpResponse;
-import org.apache.http.client.methods.HttpPost;
-import org.apache.http.entity.mime.MultipartEntity;
-import org.apache.http.entity.mime.content.FileBody;
-import org.apache.http.impl.client.BasicResponseHandler;
-import org.apache.http.impl.client.DefaultHttpClient;
 import org.json.JSONArray;
-import org.json.JSONObject;
-import org.json.JSONTokener;
 
 import android.app.Activity;
 import android.app.ProgressDialog;
 import android.content.Intent;
-import android.content.SharedPreferences;
 import android.database.Cursor;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
@@ -209,7 +199,7 @@ public class PhotoUploader extends Activity {
 					+ getString(R.string.thing_broker_port) + "/thingbroker/content/" + id;
 				array.put(src);
 
-				return ThingBrokerHelper.postJSONArray(array, uploadURL, eventKey, sensorKey);
+				return ThingBrokerHelper.postObject(array, uploadURL, eventKey, sensorKey);
 			} catch (Exception e) {
 				e.printStackTrace(System.err);
 				return null;

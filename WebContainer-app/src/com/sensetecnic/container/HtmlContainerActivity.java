@@ -186,7 +186,7 @@ public class HtmlContainerActivity extends SlidingFragmentActivity {
 							}
 							return true;
 						case URLParser.METHOD_START_TOUCH:
-							ThingBrokerHelper.postJSONObject(
+							ThingBrokerHelper.postObject(
 									parser.getExtra(),
 									uploadURL,
 									parser.getEventKey(),

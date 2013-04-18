@@ -102,7 +102,7 @@ public class GPSUploader implements LocationListener  {
 				data.put(lng);
 				System.out.println("GPS values are: " + data);
 				
-				ThingBrokerHelper.postJSONArray(data, uploadURL, eventKey, sensorKey);
+				ThingBrokerHelper.postObject(data, uploadURL, eventKey, sensorKey);
 			} catch (Exception e1) {
 				e1.printStackTrace(System.err);
 			}

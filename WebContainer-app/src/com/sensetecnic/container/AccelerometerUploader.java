@@ -3,9 +3,6 @@ package com.sensetecnic.container;
 import java.util.Timer;
 import java.util.TimerTask;
 
-import org.apache.http.client.methods.HttpPost;
-import org.apache.http.entity.ByteArrayEntity;
-import org.apache.http.impl.client.DefaultHttpClient;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
@@ -93,7 +90,7 @@ public class AccelerometerUploader implements SensorEventListener {
 				arr.put(linearAccel[1]);
 				arr.put(linearAccel[2]);
 				
-				ThingBrokerHelper.postJSONObject(arr, uploadURL, eventKey, sensorKey);
+				ThingBrokerHelper.postObject(arr, uploadURL, eventKey, sensorKey);
 			} catch (Exception e1) {
 				e1.printStackTrace(System.err);
 			}
