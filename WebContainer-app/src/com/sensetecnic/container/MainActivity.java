@@ -271,7 +271,7 @@ public class MainActivity extends SlidingFragmentActivity {
 				if (accelerometerUploader != null) {
 					accelerometerUploader.stop();
 				}
-				accelerometerUploader = new AccelerometerUploader(uploadURL, this, parser);
+				accelerometerUploader = new AccelerometerUploader(this, uploadURL, parser);
 			}
 			Intent intent;
 			switch(parser.getMethod()) {
@@ -337,7 +337,7 @@ public class MainActivity extends SlidingFragmentActivity {
 		return false;
 	}
 	
-	private String getUploadURL(String thingID, String displayID) {
+	public String getUploadURL(String thingID, String displayID) {
 		// Follow this format: http://kimberly.magic.ubc.ca:8080/thingbroker/things/1231/events
 		String server = getString(R.string.thing_broker_server);
 		String port = getString(R.string.thing_broker_port);

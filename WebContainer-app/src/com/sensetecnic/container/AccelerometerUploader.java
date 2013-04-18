@@ -26,8 +26,8 @@ public class AccelerometerUploader implements SensorEventListener {
 	SensorManager sensorManager;
 	
 
-	public AccelerometerUploader(String uploadURL, Activity parent, URLParser parser) {
-		sensorManager = (SensorManager)parent.getSystemService(Context.SENSOR_SERVICE);
+	public AccelerometerUploader(Context context, String uploadURL, URLParser parser) {
+		sensorManager = (SensorManager)context.getSystemService(Context.SENSOR_SERVICE);
 		sensor = sensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER);
 		this.uploadURL = uploadURL;
 		eventKey = parser.getEventKey();

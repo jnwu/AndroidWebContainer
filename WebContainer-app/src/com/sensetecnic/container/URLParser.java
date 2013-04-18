@@ -5,8 +5,8 @@ import android.util.Log;
 public class URLParser {
 	
 	String url;
-	int device = -1;
-	int method = -1;
+	int device = DEVICE_INVALID;
+	int method = METHOD_INVALID;
 	String thingID = null;
 	String eventKey = null;
 	String sensorKey = null;
@@ -18,7 +18,7 @@ public class URLParser {
 	public static final int DEVICE_GALLERY = 3;
 	public static final int DEVICE_MEDIA = 4;
 	public static final int DEVICE_GPS = 5;
-	private static final int DEVICE_TOUCH = 6;
+	public static final int DEVICE_TOUCH = 6;
 	
 	public static final int METHOD_START_ACCELEROMETER = 1;
 	public static final int METHOD_STOP_ACCELEROMETER = 2;
@@ -31,6 +31,9 @@ public class URLParser {
 	public static final int METHOD_START_GPS = 9;
 	public static final int METHOD_START_TOUCH = 0;
 	
+	public static final int METHOD_INVALID = -1;
+	public static final int DEVICE_INVALID = -1;
+	
 
 	public URLParser(String url) {
 		this.url = url;
@@ -38,7 +41,7 @@ public class URLParser {
 	}
 	
 	public boolean isSpecialURL() {
-		return method != -1 && device != -1;
+		return method != METHOD_INVALID && device != DEVICE_INVALID;
 	}
 	
 	public int getDevice() {

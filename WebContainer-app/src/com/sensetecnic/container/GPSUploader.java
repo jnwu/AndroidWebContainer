@@ -25,8 +25,8 @@ public class GPSUploader implements LocationListener  {
 	private double lng, lat;
 
 
-	public GPSUploader(Activity parent, String uploadURL, URLParser parser) {
-		locationManager = (LocationManager) parent.getSystemService(Context.LOCATION_SERVICE);
+	public GPSUploader(Context context, String uploadURL, URLParser parser) {
+		locationManager = (LocationManager) context.getSystemService(Context.LOCATION_SERVICE);
 		
 	    provider = locationManager.getBestProvider(new Criteria(), false);
 	    Location location = locationManager.getLastKnownLocation(provider);
