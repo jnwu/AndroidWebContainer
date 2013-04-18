@@ -55,6 +55,12 @@ public class MainActivity extends SlidingFragmentActivity {
 	private boolean accelerometer_enabled = false;
 	private JSONArray appList;
 	private String displayID = "";
+	private String thingbrokerServer;
+	private String thingbrokerPort;
+	
+	protected static final int CONFIGURE_THINGBROKER_SERVER = 1;
+	protected static final int CONFIGURE_THINGBROKER_PORT = 2;
+	protected static final int CHANGE_URL = 3;
 	
 	private ProgressBar pbLoading;
 	
@@ -80,6 +86,8 @@ public class MainActivity extends SlidingFragmentActivity {
         menu.setBehindOffsetRes(R.dimen.slidingmenu_offset);
         menu.setFadeDegree(0.35f);
 		
+        thingbrokerServer = getString(R.string.thing_broker_server);
+        thingbrokerPort = getString(R.string.thing_broker_port);
 		pbLoading = (ProgressBar)findViewById(R.id.pbLoading);
 		webView = (WebView) findViewById(R.id.webview);
 		webView.getSettings().setJavaScriptEnabled(true);
@@ -118,11 +126,13 @@ public class MainActivity extends SlidingFragmentActivity {
 			webView.reload();
 			return true;
 		case R.id.gotourl:
-			typeUrl();
+			showPromptDialog(CHANGE_URL);
 			return true;
-		case R.id.camera:
-			Intent intent = new Intent("com.nexes.manager.LAUNCH");
-			startActivityForResult(intent, 5);
+		case R.id.thingbroker_server:
+			showPromptDialog(CONFIGURE_THINGBROKER_SERVER);
+			return true;
+		case R.id.thingbroker_port:
+			showPromptDialog(CONFIGURE_THINGBROKER_PORT);
 			return true;
 		default:
 			return super.onOptionsItemSelected(item);
@@ -133,25 +143,47 @@ public class MainActivity extends SlidingFragmentActivity {
 		webView.saveState(outState);
 	}
 	
-	private void typeUrl() {
+	private EditText showPromptDialog(final int action) {
 		final AlertDialog.Builder alert = new AlertDialog.Builder(this);
 		final EditText input = new EditText(this);
 		final LinearLayout layout = new LinearLayout(this);
 		final TextView instructions = new TextView(this);
-		input.setText(getString(R.string.default_url));
 		input.setInputType(InputType.TYPE_TEXT_VARIATION_URI);
 		layout.setLayoutParams(new LinearLayout.LayoutParams(LayoutParams.FILL_PARENT, LayoutParams.WRAP_CONTENT));
 		input.setLayoutParams(new LinearLayout.LayoutParams(LayoutParams.FILL_PARENT, LayoutParams.WRAP_CONTENT, 1f));
-		instructions.setText("Enter URL:");
+		switch(action) {
+			case CONFIGURE_THINGBROKER_SERVER:
+				input.setText(thingbrokerServer);
+				instructions.setText("Enter Server URL (without protocol):");
+				break;
+			case CONFIGURE_THINGBROKER_PORT:
+				input.setText(thingbrokerPort);
+				instructions.setText("Enter Port Number:");
+				break;
+			case CHANGE_URL:
+				input.setText(webView.getUrl());
+				instructions.setText("Enter URL:");
+				break;
+		}
 		instructions.setLayoutParams(new LinearLayout.LayoutParams(LayoutParams.WRAP_CONTENT, LayoutParams.WRAP_CONTENT, 0f));
 		layout.setOrientation(LinearLayout.VERTICAL);
 		layout.addView(instructions);
 		layout.addView(input);
 		alert.setView(layout);
-		alert.setPositiveButton("Go", new DialogInterface.OnClickListener() {
+		alert.setPositiveButton("OK", new DialogInterface.OnClickListener() {
 			public void onClick(DialogInterface dialog, int whichButton) {
 				String value = input.getText().toString().trim();
-				webView.loadUrl(value);
+				switch(action) {
+					case CONFIGURE_THINGBROKER_SERVER:
+						thingbrokerServer = value;
+						break;
+					case CONFIGURE_THINGBROKER_PORT:
+						thingbrokerPort = value;
+						break;
+					case CHANGE_URL:
+						webView.loadUrl(value);
+						break;
+				}
 			}
 		});
 		alert.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
@@ -160,8 +192,9 @@ public class MainActivity extends SlidingFragmentActivity {
 			}
 		});
 		alert.show();
+		return input;
 	}
-
+	
 	@Override
 	public void onResume() {
 		super.onResume();
@@ -267,6 +300,7 @@ public class MainActivity extends SlidingFragmentActivity {
 		URLParser parser = new URLParser(url);
 		if (parser.isSpecialURL()) {
 			String uploadURL = getUploadURL(parser.getThingID(), displayID);
+			System.err.println("uploadURL: " + uploadURL);
 			if (parser.getDevice() == URLParser.DEVICE_ACCELEROMTER) {
 				if (accelerometerUploader != null) {
 					accelerometerUploader.stop();
@@ -339,9 +373,7 @@ public class MainActivity extends SlidingFragmentActivity {
 	
 	public String getUploadURL(String thingID, String displayID) {
 		// Follow this format: http://kimberly.magic.ubc.ca:8080/thingbroker/things/1231/events
-		String server = getString(R.string.thing_broker_server);
-		String port = getString(R.string.thing_broker_port);
-		String baseURL = "http://" + server + ":" + port + "/thingbroker";
+		String baseURL = "http://" + thingbrokerServer + ":" + thingbrokerPort + "/thingbroker";
 		return baseURL + "/things/" + thingID + displayID + "/events";
 	}
 
