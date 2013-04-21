@@ -35,13 +35,22 @@ public class URLParser {
 	public static final int DEVICE_INVALID = -1;
 	
 
+	/**
+	 * Creates an instance of URLParser, and parses the provided URL making it ready to be accessed through the getters
+	 * @param url URL to be parsed
+	 */
 	public URLParser(String url) {
 		this.url = url;
 		parse();
 	}
 	
+	/**
+	 * @return Returns true if the provided URL is a special URL (i.e. don't navigate to it) 
+	 */
 	public boolean isSpecialURL() {
-		return method != METHOD_INVALID && device != DEVICE_INVALID;
+		// Since method, device and eventKey are required components of the URL, we consider
+		// this URL not special if any of them couldn't be identified
+		return method != METHOD_INVALID && device != DEVICE_INVALID && eventKey != null;
 	}
 	
 	public int getDevice() {

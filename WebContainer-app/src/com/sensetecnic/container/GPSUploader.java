@@ -5,7 +5,6 @@ import java.util.TimerTask;
 
 import org.json.JSONArray;
 
-import android.app.Activity;
 import android.content.Context;
 import android.location.Criteria;
 import android.location.Location;
@@ -24,7 +23,13 @@ public class GPSUploader implements LocationListener  {
 	private String sensorKey;
 	private double lng, lat;
 
-
+	/**
+	 * Creates an instance of GPSUploader that can be used to control posting GPS data to ThingBroker
+	 * @param context usually the Activity that owns this object
+	 * @param uploadURL full ThingBroker URL to post data to
+	 * @param parser an instance of the URLParser that corresponds to this request.
+	 * 		         This is used to pull the EventKey and SensorKey
+	 */
 	public GPSUploader(Context context, String uploadURL, URLParser parser) {
 		locationManager = (LocationManager) context.getSystemService(Context.LOCATION_SERVICE);
 		
@@ -40,7 +45,7 @@ public class GPSUploader implements LocationListener  {
 	      System.out.println("Provider " + provider + " has been selected.");
 	      onLocationChanged(location);
 	    } else {
-	      System.err.println("Something fucked up happened");
+	      System.err.println("Something really messed up happened");
 	    } 
 	}
 	
@@ -62,6 +67,10 @@ public class GPSUploader implements LocationListener  {
 		locationManager.removeUpdates(this);
 	}
 	
+	/**
+	 * Update the period with which this posts data to ThingBroker
+	 * @param period Period in milliseconds
+	 */
 	public void setPeriod(int period) {
 		this.period = period;
 		if (timer != null) {

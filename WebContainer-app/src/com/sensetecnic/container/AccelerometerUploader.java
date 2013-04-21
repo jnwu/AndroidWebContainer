@@ -4,9 +4,7 @@ import java.util.Timer;
 import java.util.TimerTask;
 
 import org.json.JSONArray;
-import org.json.JSONObject;
 
-import android.app.Activity;
 import android.content.Context;
 import android.hardware.Sensor;
 import android.hardware.SensorEvent;
@@ -26,6 +24,13 @@ public class AccelerometerUploader implements SensorEventListener {
 	SensorManager sensorManager;
 	
 
+	/**
+	 * Creates an instance of AccelerometerUploader that can be used to control posting accel data to ThingBroker
+	 * @param context usually the Activity that owns this object
+	 * @param uploadURL full ThingBroker URL to post data to
+	 * @param parser an instance of the URLParser that corresponds to this request.
+	 * 		         This is used to pull the EventKey and SensorKey from the URL
+	 */
 	public AccelerometerUploader(Context context, String uploadURL, URLParser parser) {
 		sensorManager = (SensorManager)context.getSystemService(Context.SENSOR_SERVICE);
 		sensor = sensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER);
@@ -52,6 +57,10 @@ public class AccelerometerUploader implements SensorEventListener {
 		sensorManager.unregisterListener(this);
 	}
 	
+	/**
+	 * Update the period with which this posts data to ThingBroker
+	 * @param period Period in milliseconds
+	 */
 	public void setPeriod(int period) {
 		this.period = period;
 		if (timer != null) {
@@ -79,16 +88,11 @@ public class AccelerometerUploader implements SensorEventListener {
 		@Override
 		public void run() {
 			try {
-				JSONObject data = new JSONObject();
-				data.put("x", linearAccel[0]);
-				data.put("y", linearAccel[1]);
-				data.put("z", linearAccel[2]);
-				Log.d("DEBUG", "Accelerometer values are: " + data);
-				
 				JSONArray arr = new JSONArray();
 				arr.put(linearAccel[0]);
 				arr.put(linearAccel[1]);
 				arr.put(linearAccel[2]);
+				Log.d("DEBUG", "Accelerometer values are: " + arr);
 				
 				ThingBrokerHelper.postObject(arr, uploadURL, eventKey, sensorKey);
 			} catch (Exception e1) {

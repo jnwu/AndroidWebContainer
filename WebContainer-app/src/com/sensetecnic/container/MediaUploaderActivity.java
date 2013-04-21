@@ -17,7 +17,6 @@ public class MediaUploaderActivity extends Activity {
 	String eventKey;
 	String sensorKey;
 	
-	/** Called when the activity is first created. */
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
@@ -28,6 +27,7 @@ public class MediaUploaderActivity extends Activity {
 		eventKey = intent.getStringExtra("eventKey");
 		sensorKey = intent.getStringExtra("sensorKey");
 		
+		// Open the file manager and let the user pick a file
 		Intent newIntent = new Intent("com.nexes.manager.LAUNCH");
 		startActivityForResult(newIntent, 0);
 	}
@@ -52,7 +52,7 @@ public class MediaUploaderActivity extends Activity {
 	class FileUploadTask extends AsyncTask<String, Void, String> {
 		protected String doInBackground(String... params) {
 			try {
-				String id = ThingBrokerHelper.uploadFile(file, uploadURL, eventKey, sensorKey);
+				String id = ThingBrokerHelper.uploadFile(file, uploadURL);
 				JSONArray array = new JSONArray();
 
 				String url = 
@@ -73,12 +73,7 @@ public class MediaUploaderActivity extends Activity {
 				progressDialog.dismiss();
 
 			if (result != null) {
-				//System.out.println("Uploaded to " + getString(R.string.upload_url) + " with response " + result);
-				//Passes the result of the upload back out of the callbackactivity
-				Intent callbackactivity = getIntent();
-				callbackactivity.putExtra("uploadResult", result);
-				callbackactivity.putExtra("method", "upload");
-				setResult(RESULT_OK, callbackactivity);
+				setResult(RESULT_OK, getIntent());
 			}
 			finish();
 		}

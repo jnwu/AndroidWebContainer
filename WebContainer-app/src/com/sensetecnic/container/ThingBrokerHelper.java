@@ -19,7 +19,14 @@ public class ThingBrokerHelper {
 		// This class is a bunch of static helpers. Instantiating shouldn't be allowed
 	}
 	
-	//public static String postJSONObject(JSONObject json, String uploadURL, String eventKey, String sensorKey) {
+	/**
+	 * Post an object to the thing broker
+	 * @param obj Object that should be posted. obj must be convertable to JSON
+	 * @param uploadURL full URL to post obj to
+	 * @param eventKey key for the event (e.g. "native", "append", "prepend")
+	 * @param sensorKey key for the sensor. Can be null
+	 * @return response from the ThingBroker
+	 */
 	public static String postObject(Object obj, String uploadURL, String eventKey, String sensorKey) {
 		try {
 			DefaultHttpClient httpclient = new DefaultHttpClient();  		
@@ -46,8 +53,14 @@ public class ThingBrokerHelper {
 		}
 	}
 
-	// Uploads a file to the thing broker and returns the content id 
-	public static String uploadFile(File file, String uploadURL, String eventKey, String sensorKey) {
+	/**
+	 * Uploads a file to the ThingBroker
+	 * @param file file to upload
+	 * @param uploadURL full URL to upload to
+	 * @return the content-id of the uploaded file
+	 */
+	//  
+	public static String uploadFile(File file, String uploadURL) {
 		try {			
 			MultipartEntity reqEntity = new MultipartEntity();  
 			FileBody bin = new FileBody(file);

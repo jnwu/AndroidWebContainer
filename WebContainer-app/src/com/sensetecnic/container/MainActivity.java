@@ -4,12 +4,9 @@
 
 package com.sensetecnic.container;
 
-import java.io.ByteArrayOutputStream;
-import java.util.HashMap;
-import java.util.Map;
-
 import org.apache.http.HttpResponse;
 import org.apache.http.client.methods.HttpGet;
+import org.apache.http.impl.client.BasicResponseHandler;
 import org.apache.http.impl.client.DefaultHttpClient;
 import org.json.JSONArray;
 import org.json.JSONTokener;
@@ -19,17 +16,10 @@ import com.google.zxing.integration.android.IntentResult;
 import com.slidingmenu.lib.SlidingMenu;
 import com.slidingmenu.lib.app.SlidingFragmentActivity;
 
-import br.ufscar.dc.thingbroker.model.Event;
-import br.ufscar.dc.thingbroker.services.EventService;
-import br.ufscar.dc.thingbroker.services.impl.EventServiceImpl;
 
-import android.app.Activity;
 import android.app.AlertDialog;
-import android.app.ProgressDialog;
 import android.content.DialogInterface;
 import android.content.Intent;
-import android.content.SharedPreferences;
-import android.net.Uri;
 import android.os.Bundle;
 import android.text.InputType;
 import android.util.Log;
@@ -64,11 +54,10 @@ public class MainActivity extends SlidingFragmentActivity {
 	
 	private ProgressBar pbLoading;
 	
-	// For uploading accelerometer data periodically
+	// For uploading accelerometer and GPS data periodically
 	AccelerometerUploader accelerometerUploader;
 	GPSUploader gpsUploader;
 	
-	/** Called when the activity is first created. */
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
@@ -100,15 +89,8 @@ public class MainActivity extends SlidingFragmentActivity {
 			}
 		});
 
-		String url = getIntent().getStringExtra("url");
-		if (url != null) {
-			System.out.println("Webview loading: " + url);
-			webView.loadUrl(url);
-		} else {
-			// load default url
-			System.out.println("Webview loading default url");
-			webView.loadUrl(getString(R.string.default_url));
-		}
+		// load default url on start
+		webView.loadUrl(getString(R.string.default_url));
 	}
 	
 	@Override
@@ -143,7 +125,13 @@ public class MainActivity extends SlidingFragmentActivity {
 		webView.saveState(outState);
 	}
 	
-	private EditText showPromptDialog(final int action) {
+	/**
+	 * Helper function that is used for showing  a dialog that allows the user
+	 * to configure a part of the application
+	 * @param action One of the private constants declared in this class
+	 * 		  (e.g. CONFIGURE_THINGBROKER_SERVER) 
+	 */
+	private void showPromptDialog(final int action) {
 		final AlertDialog.Builder alert = new AlertDialog.Builder(this);
 		final EditText input = new EditText(this);
 		final LinearLayout layout = new LinearLayout(this);
@@ -192,7 +180,6 @@ public class MainActivity extends SlidingFragmentActivity {
 			}
 		});
 		alert.show();
-		return input;
 	}
 	
 	@Override
@@ -233,12 +220,7 @@ public class MainActivity extends SlidingFragmentActivity {
 		}
 	}
 
-	/**
-	 * Custom web chrome client so that we can grant geolocation privileges automatically and display alerts if they come up
-	 * 
-	 * @author tom
-	 *
-	 */
+	 // Custom WebChromeClient that allows us to show the progress as the WebView loads the web page
 	class ContainerWebChromeClient extends WebChromeClient {
 		@Override
 		public void onGeolocationPermissionsShowPrompt(String origin, GeolocationPermissions.Callback callback) {
@@ -264,6 +246,8 @@ public class MainActivity extends SlidingFragmentActivity {
 		}
 	}
 	
+	// This method issues a GET request to the Container API URL and receives a list of
+	// applications that are to be displayed
 	private void initAppList() {
 		try {
 			DefaultHttpClient httpclient = new DefaultHttpClient();
@@ -271,17 +255,15 @@ public class MainActivity extends SlidingFragmentActivity {
 			HttpResponse response = httpclient.execute(getRequest);
 			System.out.println(response.getStatusLine());
 			if (response.getEntity() != null) {
-				ByteArrayOutputStream out = new ByteArrayOutputStream();
-				response.getEntity().writeTo(out);
-				out.close();
-				appList = (JSONArray) new JSONTokener(out.toString()).nextValue();
+				String result = new BasicResponseHandler().handleResponse(response);
+				appList = (JSONArray) new JSONTokener(result).nextValue();
 				
 				String[] items = new String[appList.length() + 1];
 				for (int i = 0; i < appList.length(); i++) {
 					items[i] = appList.getJSONObject(i).getString("name");
 				}
 				
-				// Last item is for scanning the QR code of the display
+				// Hardcode last item for scanning the QR code of the display
 				items[items.length - 1] = "** Scan Display QR **";
 				
 				getSupportFragmentManager()
@@ -296,11 +278,16 @@ public class MainActivity extends SlidingFragmentActivity {
 		}		
 	}
 	
+	/**
+	 * This method handles the processing of URLs, and taking the right action accordingly
+	 * (i.e. starting new Activity, stopping upload, etc)
+	 * @param url The URL user is attempting to navigate
+	 * @return true if this is a special URL that requires our handling, false otherwise
+	 */
 	private boolean onURLChange(String url) {
 		URLParser parser = new URLParser(url);
 		if (parser.isSpecialURL()) {
 			String uploadURL = getUploadURL(parser.getThingID(), displayID);
-			System.err.println("uploadURL: " + uploadURL);
 			if (parser.getDevice() == URLParser.DEVICE_ACCELEROMTER) {
 				if (accelerometerUploader != null) {
 					accelerometerUploader.stop();
@@ -377,9 +364,10 @@ public class MainActivity extends SlidingFragmentActivity {
 		return baseURL + "/things/" + thingID + displayID + "/events";
 	}
 
+	// Called when a user makes a selection from the SlidingMenu
 	public void onMenuItemSelected(int index) {
 		toggle();
-		// If this is for scanning the QR code of a display
+		// If this is the last time in the list, then it's for scanning the QR code of a display
 		if (index == appList.length()) {
 			IntentIntegrator integrator = new IntentIntegrator(MainActivity.this);
 			integrator.initiateScan();
@@ -389,7 +377,6 @@ public class MainActivity extends SlidingFragmentActivity {
 				if (url == null || url.equals("")) {
 					url = appList.getJSONObject(index).getString("url");
 				}
-				System.out.println("URL: " + url);
 				webView.loadUrl(url);
 			} catch (Exception e) {
 				e.printStackTrace(System.err);

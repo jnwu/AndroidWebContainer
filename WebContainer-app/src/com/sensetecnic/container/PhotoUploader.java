@@ -37,7 +37,6 @@ public class PhotoUploader extends Activity {
 	private static final int CAPTURE_IMAGE = 1;
 	private static final int GALLERY_IMAGE = 2;
 	
-	/** Called when the activity is first created. */
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
@@ -48,6 +47,8 @@ public class PhotoUploader extends Activity {
 		uploadURL = intent.getStringExtra("uploadURL") + "?keep-stored=true";
 		eventKey = intent.getStringExtra("eventKey");
 		sensorKey = intent.getStringExtra("sensorKey"); 
+		
+		// Open camera or gallery according to the requested source
 		if (source.equals("camera")) {
 			captureTime = System.currentTimeMillis();
 			Intent newIntent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
@@ -74,6 +75,7 @@ public class PhotoUploader extends Activity {
 				if (requestCode == CAPTURE_IMAGE) {
 					uri = Uri.fromFile(photo);
 				} else if (requestCode == GALLERY_IMAGE) {
+					// Retrieve the correct Uri based on the user's selection for an image from the gallery
 					uri = data.getData();
 					String[] filePathColumn = {MediaStore.Images.Media.DATA};
 					Cursor cursor = getContentResolver().query(uri, filePathColumn, null, null, null);
@@ -93,7 +95,7 @@ public class PhotoUploader extends Activity {
 		}		
 	}
 
-	/** Create a File for saving an image or video */
+	// Create a File for saving the image we take with the device camera 
 	private static File getOutputMediaFile(int type){
 		File mediaStorageDir = new File(Environment.getExternalStorageDirectory() + "/meeImages");
 
@@ -117,6 +119,7 @@ public class PhotoUploader extends Activity {
 		return mediaFile;
 	}
 	
+	// An async task responsible for compressing and uploading the photo
 	class CompressAndUploadPhotoTask extends AsyncTask<Uri, Void, Boolean> {
 		protected Boolean doInBackground(Uri... params) {
 			try {
@@ -190,7 +193,7 @@ public class PhotoUploader extends Activity {
 	class PostPhotoTask extends AsyncTask<String, Void, String> {
 		protected String doInBackground(String... params) {
 			try {
-				String id = ThingBrokerHelper.uploadFile(photo, uploadURL, eventKey, sensorKey);
+				String id = ThingBrokerHelper.uploadFile(photo, uploadURL);
 				JSONArray array = new JSONArray();
 
 				String src = 
@@ -198,6 +201,7 @@ public class PhotoUploader extends Activity {
 					+ getString(R.string.thing_broker_port) + "/thingbroker/content/" + id;
 				array.put(src);
 
+				// Post to the ThingBroker again with URL of the uploaded photo
 				return ThingBrokerHelper.postObject(array, uploadURL, eventKey, sensorKey);
 			} catch (Exception e) {
 				e.printStackTrace(System.err);
@@ -210,13 +214,7 @@ public class PhotoUploader extends Activity {
 				progressDialog.dismiss();
 
 			if (result != null) {
-				System.out.println("Uploaded to " + getString(R.string.upload_url) + " with response " + result);
-				
-				//Passes the result of the upload back out of the callbackactivity
-				Intent callbackactivity = getIntent();
-				callbackactivity.putExtra("uploadResult", result);
-				callbackactivity.putExtra("method", "upload");
-				setResult(RESULT_OK, callbackactivity);
+				setResult(RESULT_OK, getIntent());
 			}
 			
 			finish();
